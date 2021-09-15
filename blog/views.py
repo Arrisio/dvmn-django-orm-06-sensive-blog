@@ -40,8 +40,9 @@ def index(request):
     most_fresh_posts = list(fresh_posts)[-5:]
 
     tags = Tag.objects.all()
-    popular_tags = sorted(tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
+    most_popular_tags = tags.annotate(posts_count=Count("posts")).order_by(
+        "-posts_count"
+    )[:5]
 
     context = {
         "most_popular_posts": [
