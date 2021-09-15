@@ -34,9 +34,11 @@ def index(request):
         Post.objects.all()
         .annotate(likes_count=Count("likes"))
         .order_by("-likes_count")[:5]
-    )
+    ).prefetch_related("author")
 
-    fresh_posts = Post.objects.order_by("published_at")
+    fresh_posts = Post.objects.order_by("published_at").prefetch_related(
+        "author"
+    )
     most_fresh_posts = list(fresh_posts)[-5:]
 
     tags = Tag.objects.all()
