@@ -8,6 +8,17 @@ class PostQuerySet(models.QuerySet):
     def year(self, year):
         return self.filter(published_at__year=year).order_by("published_at")
 
+    def popular(self):
+        return self.annotate(Count("likes")).order_by("-likes__count")
+
+    def fetch_with_comments_count(self):
+        posts = self.all()
+        posts_ids = [post.id for post in posts]
+        posts_with_comments = Post.objects.filter(id__in=posts_ids).annotate(
+            Count("comments")
+        )
+        return posts_with_comments
+
 
 class Post(models.Model):
     title = models.CharField("Заголовок", max_length=200)

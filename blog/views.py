@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Value, IntegerField
 from django.shortcuts import render
 from blog.models import Comment, Post, Tag
 
@@ -47,18 +47,18 @@ def index(request):
     most_popular_posts = (
         Post.objects.all()
         .annotate(Count("likes"))
-        .order_by("-likes__count")[:5]
-    ).prefetch_related("author")
+        .order_by("-likes__count")
+    )[:5].fetch_with_comments_count().prefetch_related("author")
 
-    posts_with_comments = {
-        post.id: post.comments__count
-        for post in Post.objects.filter(
-            id__in=[post.id for post in most_popular_posts]
-        ).annotate(Count("comments"))
-    }
-
-    for post in most_popular_posts:
-        post.comments__count = posts_with_comments[post.id]
+    # posts_with_comments = {
+    #     post.id: post.comments__count
+    #     for post in Post.objects.filter(
+    #         id__in=[post.id for post in most_popular_posts]
+    #     ).annotate(Count("comments"))
+    # }
+    posts_with_comments = most_popular_posts
+    # for post in most_popular_posts:
+    #     post.comments__count = posts_with_comments[post.id]
 
     most_fresh_posts = (
         Post.objects.order_by("-published_at")
@@ -127,7 +127,7 @@ def tag_filter(request, tag_title):
     most_popular_tags = Tag.objects.popular()[:5]
 
     tag = Tag.objects.get(title=tag_title)
-    related_posts = tag.posts.all()[:20]
+    related_posts = tag.posts.prefetch_related("author").all()[:20]
 
     most_popular_posts = []  # TODO. Как это посчитать?
 
