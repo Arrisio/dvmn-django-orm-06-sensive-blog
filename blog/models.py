@@ -19,6 +19,14 @@ class PostQuerySet(models.QuerySet):
         )
         return posts_with_comments
 
+    def fetch_with_tags(self):
+        tags_with_posts_count = self.prefetch_related(
+            models.Prefetch(
+                "tags", queryset=Tag.objects.annotate(Count("posts"))
+            )
+        )
+        return tags_with_posts_count
+
 
 class Post(models.Model):
     title = models.CharField("Заголовок", max_length=200)
