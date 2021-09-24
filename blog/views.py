@@ -60,7 +60,7 @@ def post_detail(request, slug):
         .prefetch_related("comments", "comments__author", "author")
         .fetch_with_tags()
         .annotate(Count("likes"))
-        .get(slug=slug)
+        .get_object_or_404(slug=slug)
     )
 
     serialized_comments = [
@@ -106,7 +106,7 @@ def post_detail(request, slug):
 def tag_filter(request, tag_title):
     most_popular_tags = Tag.objects.popular()[:5].annotate(Count("posts"))
 
-    tag = Tag.objects.get(title=tag_title)
+    tag = Tag.objects.get_object_or_404(title=tag_title)
     related_posts = (
         tag.posts.all()[:20]
         .fetch_with_comments_count()
